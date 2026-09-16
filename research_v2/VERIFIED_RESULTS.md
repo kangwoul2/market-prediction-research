@@ -1,103 +1,133 @@
-# Verified Research V2 Results
+# Research V2 실제 검증 결과
 
-이 문서는 저장소의 실제 데이터와 `research_v2/` 코드를 GitHub Actions에서 실행한 결과를 고정 기록합니다.
+이 문서는 저장소의 실제 데이터와 `research_v2/` 코드를 GitHub Actions에서 실행한 결과를 기록합니다.
 
-- Workflow: `research-v2`
-- Successful run: `34449931162`
-- Commit evaluated: `d81f044c91f41e65ff1e4758b530033067e2d1b9`
-- Environment: GitHub Actions Ubuntu runner / Python 3.11
-- Result policy: 측정되지 않은 수치나 수동으로 개선한 수치를 기록하지 않음
+- 작업 흐름: `research-v2`
+- 성공 실행 번호: `34449931162`
+- 검증 커밋: `d81f044c91f41e65ff1e4758b530033067e2d1b9`
+- 실행 환경: GitHub Actions Ubuntu / Python 3.11
+- 원칙: 측정되지 않은 수치나 수동으로 개선한 수치를 기록하지 않음
 
-## 1. Leakage-safe three-class benchmark
+## 1. 첫 번째 시간 순 3분류 재검증
 
-시간 순서를 보존하고 train-only preprocessing을 사용한 첫 재검증에서 선택된 구성은 다음과 같습니다.
+시간 순서를 보존하고 학습 데이터에서만 전처리 기준을 계산한 첫 재검증 결과입니다.
 
-- Feature set: `stationary_v2`
-- Model: `HistGradientBoosting`
-- Accuracy: `0.3249`
-- Balanced Accuracy: `0.3173`
+- 변수 구성: `stationary_v2`
+- 모델: `HistGradientBoosting`
+- 정확도: `0.3249`
+- 균형 정확도: `0.3173`
 - Macro F1: `0.3127`
-- Walk-forward Macro F1 mean/std: `0.3485 / 0.0198`
-- Majority dummy 대비 Macro F1 gain: `+0.1612`
+- 시간 이동 Macro F1 평균/표준편차: `0.3485 / 0.0198`
+- 다수 클래스 기준 모델 대비 Macro F1 증가: `+0.1612`
 
-이 결과는 절대적인 예측력이 강하다는 의미가 아닙니다. 오히려 모든 날짜를 강제로 3-class로 예측하는 문제가 어렵다는 것을 보여줍니다.
+이 결과는 절대적인 예측력이 강하다는 뜻이 아닙니다. 오히려 모든 날짜를 강제로 상승·횡보·하락으로 나누는 문제가 어렵다는 것을 보여줍니다.
 
-## 2. Selective prediction
+---
 
-confidence가 낮은 예측을 거절하는 방식에서 다음 trade-off가 관찰됐습니다.
+## 2. 확신도가 낮은 경우 예측하지 않는 실험
 
-- confidence threshold: `0.65`
-- coverage: `0.3193`
-- accuracy: `0.4211`
+- 확신도 기준: `0.65`
+- 예측 범위: `0.3193`
+- 정확도: `0.4211`
 
-즉 전체 날짜 중 약 31.9%만 예측하는 대신 accuracy가 약 42.1%로 높아졌습니다. 이는 모델을 모든 날짜에 강제로 사용하는 것보다 **high-conviction prediction의 품질/coverage trade-off를 별도로 평가해야 한다**는 근거가 되었습니다.
+전체 날짜 중 약 31.9%에만 예측을 내렸을 때 정확도가 약 42.1%였습니다.
 
-## 3. Extended benchmark
+이 수치를 전체 날짜 정확도처럼 말하지 않습니다. **정확도가 높아진 대신 실제 예측하는 날짜가 줄었다는 점을 함께 설명해야 합니다.**
 
-두 번째 실험에서는 세 가지 질문을 분리했습니다.
+---
 
-1. `three_class`: 하락 / 중립 / 상승 3-class
-2. `actionable_direction`: ±1% 이상 움직인 날에서 상승/하락 방향
-3. `actionable_move`: 큰 움직임이 발생하는 날인지 여부
+## 3. 확장 실험
 
-또한 BTC-only feature와 ETF/Gold를 포함한 cross-market feature를 비교했습니다.
+세 가지 문제를 분리했습니다.
 
-### Best verified results
+1. `three_class`: 하락 / 횡보 / 상승 3분류
+2. `actionable_direction`: ±1% 이상 움직인 날의 상승 / 하락 방향
+3. `actionable_move`: 다음 날 ±1% 이상의 큰 움직임이 발생하는지 여부
 
-| Task | Feature set | Model | Accuracy | Balanced Acc. | Macro F1 | Dummy Macro F1 |
+BTC 자체 변수와 ETF·금 등을 포함한 외부 시장 변수를 비교했습니다.
+
+### 가장 좋은 실제 검증 결과
+
+| 문제 | 변수 구성 | 모델 | 정확도 | 균형 정확도 | Macro F1 | 기준 Macro F1 |
 |---|---|---|---:|---:|---:|---:|
-| Three-class | BTC only | ExtraTrees | **0.4000** | **0.3875** | **0.3844** | 0.1511 |
-| Actionable direction | BTC + cross-market | RandomForest | **0.5459** | **0.5482** | **0.5451** | 0.3245 |
-| Actionable move | BTC + cross-market | Logistic | 0.5352 | **0.5693** | **0.5347** | 0.3783 |
+| 3분류 | BTC 단독 | ExtraTrees | **0.4000** | **0.3875** | **0.3844** | 0.1511 |
+| 큰 움직임 날의 방향 | BTC + 외부 시장 | RandomForest | **0.5459** | **0.5482** | **0.5451** | 0.3245 |
+| 큰 움직임 발생 여부 | BTC + 외부 시장 | Logistic | 0.5352 | **0.5693** | **0.5347** | 0.3783 |
 
-### Three-class interpretation
+---
 
-`BTC-only + ExtraTrees`는 dummy 대비:
+## 4. 3분류 결과 해석
 
-- Accuracy: `+0.1070`
-- Balanced Accuracy: `+0.0542`
+BTC 단독 ExtraTrees는 같은 평가 조건의 다수 클래스 기준 모델 대비:
+
+- 정확도: `+0.1070`
+- 균형 정확도: `+0.0542`
 - Macro F1: `+0.2333`
 
 을 기록했습니다.
 
-원래 논문에서 보고된 GRU Test Accuracy 0.3739와 새 0.4000을 직접적인 2.61%p 개선이라고 주장하지 않습니다. **원래 실험은 random split과 전체 데이터 preprocessing을 사용했고, Research V2는 chronological split과 train-only preprocessing을 사용하기 때문에 평가 조건이 다릅니다.**
+원래 학사 연구의 GRU 테스트 정확도 `0.3739`와 새 `0.4000`을 직접적인 `+2.61%p` 개선이라고 주장하지 않습니다.
 
-따라서 새 결과의 의미는 "기존 숫자를 더 높였다"가 아니라 **더 엄격한 평가 프로토콜에서도 dummy baseline보다 명확히 높은 성능을 재현했다**는 데 있습니다.
+이유:
 
-### Cross-market interpretation
+```text
+기존 연구
+→ 전체 데이터 전처리
+→ 무작위 학습/테스트 분할
 
-3-class에서는 cross-market feature가 BTC-only보다 좋아지지 않았습니다.
+Research V2
+→ 학습 데이터에서만 전처리 기준 계산
+→ 시간 순 학습/검증/테스트 분할
+```
 
-- BTC-only three-class Macro F1: `0.3844`
-- BTC + cross-market three-class Macro F1: `0.3772`
+평가 조건이 다르기 때문입니다.
 
-반면 actionable direction에서는 cross-market feature가 도움이 됐습니다.
+새 결과의 의미는 **더 엄격한 시간 순 평가에서도 같은 조건의 단순 기준 모델보다 높은 결과를 재현했다는 것**입니다.
 
-- BTC-only Macro F1: `0.5189`
-- BTC + cross-market Macro F1: `0.5451`
+---
 
-따라서 "외부 시장 데이터를 추가하면 항상 좋아진다"고 결론 내리지 않습니다. **feature value는 task에 따라 달라졌습니다.**
+## 5. 외부 시장 변수 비교
 
-## 4. Selective binary slices
+### 전체 날짜 3분류
 
-Coverage 20% 이상 조건에서 확인된 주요 selective slice:
+- BTC 단독 Macro F1: `0.3844`
+- BTC + 외부 시장 Macro F1: `0.3772`
 
-| Feature / Task | Threshold | Coverage | Accuracy | Balanced Acc. | Macro F1 |
+외부 시장 변수를 추가했을 때 좋아지지 않았습니다.
+
+### ±1% 이상 움직인 날의 방향
+
+- BTC 단독 Macro F1: `0.5189`
+- BTC + 외부 시장 Macro F1: `0.5451`
+
+이 문제에서는 외부 시장 변수가 도움이 됐습니다.
+
+따라서 **외부 데이터를 추가하면 항상 좋아진다고 결론 내리지 않습니다. 변수의 효과는 예측 문제에 따라 달랐습니다.**
+
+---
+
+## 6. 확신도가 높은 구간의 이진 분류 결과
+
+예측 범위 20% 이상에서 확인한 주요 결과:
+
+| 변수 / 문제 | 기준값 | 예측 범위 | 정확도 | 균형 정확도 | Macro F1 |
 |---|---:|---:|---:|---:|---:|
-| BTC only / actionable direction | 0.55 | 0.6026 | 0.5362 | 0.5348 | 0.5347 |
-| BTC only / actionable move | 0.65 | 0.2310 | **0.6463** | **0.6494** | **0.6420** |
-| Cross-market / actionable direction | 0.55 | 0.5109 | 0.4957 | 0.5053 | 0.4920 |
-| Cross-market / actionable move | 0.60 | 0.4986 | 0.5254 | 0.5651 | 0.5199 |
+| BTC 단독 / 큰 움직임 날의 방향 | 0.55 | 0.6026 | 0.5362 | 0.5348 | 0.5347 |
+| BTC 단독 / 큰 움직임 발생 여부 | 0.65 | 0.2310 | **0.6463** | **0.6494** | **0.6420** |
+| 외부 시장 포함 / 큰 움직임 날의 방향 | 0.55 | 0.5109 | 0.4957 | 0.5053 | 0.4920 |
+| 외부 시장 포함 / 큰 움직임 발생 여부 | 0.60 | 0.4986 | 0.5254 | 0.5651 | 0.5199 |
 
-특히 `BTC-only actionable_move`는 coverage 약 23.1%에서 accuracy 약 64.6%를 기록했습니다. 이는 전체 날짜 예측 성능과 직접 비교할 수 있는 동일한 문제는 아니며, **모델 confidence를 활용해 예측을 포기할 수 있을 때의 trade-off**를 보여주는 보조 실험입니다.
+BTC 단독 큰 움직임 발생 여부 분류는 전체의 약 23.1%만 예측했을 때 정확도 약 64.6%를 기록했습니다.
 
-## 5. Conclusion
+이 수치는 전체 날짜 3분류 정확도와 같은 문제가 아니며 **확신도가 낮은 경우 예측하지 않을 수 있을 때의 정확도와 예측 범위 관계**를 보여주는 보조 실험입니다.
 
-Research V2의 결론은 다음과 같습니다.
+---
 
-1. 금융 시계열 3-class 방향 예측은 단순 accuracy 하나로 강한 성능을 주장하기 어렵다.
-2. random split보다 chronological split과 train-only preprocessing이 더 타당한 평가 프로토콜이다.
-3. dummy baseline을 반드시 함께 제시해야 모델의 실제 추가 가치를 판단할 수 있다.
-4. cross-market feature는 모든 task에 일관되게 이득을 주지 않았지만 actionable direction에서는 개선을 보였다.
-5. confidence를 활용한 selective prediction은 품질과 coverage 사이의 명확한 trade-off를 만들었다.
-6. 결과를 좋게 보이게 만들기 위해 숫자를 수정하는 대신, **평가 설계를 개선하고 실패한 가설도 결과로 남기는 것이 연구의 핵심 개선**이었다.
+## 7. 결론
+
+1. 금융 시계열 3분류는 정확도 하나만으로 강한 예측력을 주장하기 어렵습니다.
+2. 무작위 분할보다 시간 순 분할과 학습 데이터만을 이용한 전처리가 실제 사용 상황에 더 가깝습니다.
+3. 같은 조건의 단순 기준 모델을 함께 봐야 학습 모델의 추가 가치를 판단할 수 있습니다.
+4. 외부 시장 변수는 모든 문제에 일관되게 도움이 되지 않았습니다.
+5. 확신도가 높은 구간만 예측하면 품질이 높아질 수 있지만 예측 범위가 줄어듭니다.
+6. 연구의 핵심 개선은 숫자를 좋게 수정한 것이 아니라 **평가 설계를 고치고 실패한 가설도 그대로 남긴 것**입니다.
