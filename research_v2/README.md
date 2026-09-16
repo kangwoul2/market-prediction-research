@@ -1,10 +1,10 @@
-# Research V2: Leakage-safe Market Direction Prediction
+# Research V2: 시계열 데이터 누수를 줄인 시장 방향 예측
 
-## 1. Why this second experiment exists
+## 1. 왜 다시 실험했는가
 
-The original undergraduate experiment compared LSTM, GRU and Transformer models on a three-class next-day Bitcoin direction problem.
+기존 학사 연구는 다음 날 Bitcoin 방향을 상승·횡보·하락으로 나누고 LSTM, GRU, Transformer를 비교했습니다.
 
-The target rule in the legacy notebook is:
+목표값 정의:
 
 ```python
 return_t_plus_1 = close.pct_change().shift(-1)
@@ -13,174 +13,148 @@ label = -1  if return_t_plus_1 < -0.01
 label = 0   otherwise
 ```
 
-The first experiment produced useful model-comparison evidence, but a later audit found two evaluation-design issues in `4.standard.ipynb`:
-
-1. `StandardScaler.fit_transform()` was applied before the train/test split.
-2. `train_test_split(..., stratify=y)` randomly mixed observations from different time periods.
-
-For ordinary IID data this pattern can be acceptable after careful preprocessing, but for financial time-series it weakens the validity of out-of-sample claims. Future-regime distribution information can enter preprocessing, and random splitting does not reproduce the real deployment question: **can a model trained on the past generalize to a later market regime?**
-
-Research V2 therefore treats the original deep-learning results as a historical baseline and introduces a stricter evaluation protocol.
-
----
-
-## 2. Research question
-
-The revised question is not simply:
-
-> Which neural network has the highest accuracy?
-
-It is:
-
-> After removing temporal leakage and using a chronological evaluation protocol, do technical indicators contain enough stable information to outperform a naive baseline, and can feature engineering or selective prediction improve the quality/coverage trade-off?
-
-This changes the emphasis from architecture competition to **evidence quality**.
-
----
-
-## 3. Causal chain of the redesign
+즉:
 
 ```text
-Weak absolute model scores
-        ↓
-Question whether model complexity is justified
-        ↓
-Audit the evaluation protocol
-        ↓
-Detect random split + scaler fitted before split
-        ↓
-Rebuild a leakage-safe chronological baseline
-        ↓
-Compare simple and nonlinear models
-        ↓
-Create stationary / relative features
-        ↓
-Evaluate by Macro-F1 + Balanced Accuracy
-        ↓
-Check walk-forward stability
-        ↓
-Measure confidence vs coverage
-        ↓
-Decide what can actually be claimed
++1% 초과 → 상승
+-1% ~ +1% → 횡보
+-1% 미만 → 하락
 ```
 
-The important point is that each new technique is introduced because the previous stage exposes a concrete limitation.
+이후 기존 코드를 다시 점검하면서 두 가지 평가 문제가 확인됐습니다.
+
+1. 학습·테스트 분할 전에 전체 데이터로 `StandardScaler` 기준을 계산함
+2. 서로 다른 시점의 데이터를 무작위로 섞어 학습·테스트로 나눔
+
+금융 시계열의 실제 사용은 과거로 미래를 예측하는 구조이므로, V2에서는 모델 구조보다 평가 방식을 먼저 고쳤습니다.
 
 ---
 
-## 4. Evaluation protocol
+## 2. 연구 질문
 
-### 4.1 Chronological 60 / 20 / 20
+V2의 질문은 단순히 “어떤 모델의 정확도가 가장 높은가?”가 아닙니다.
+
+> 미래 정보 유입을 줄이고 시간 순서를 지킨 평가에서도 기술지표가 단순 기준 모델보다 추가적인 예측 신호를 제공하는가?
+
+그리고 다음 질문을 함께 봅니다.
+
+- 단순 모델과 복잡한 모델 중 무엇이 실제 검증 데이터에서 더 나은가?
+- 가격 수준보다 상대값 중심 변수가 시장 상황 변화에 더 안정적인가?
+- 외부 시장 데이터를 추가하면 실제로 도움이 되는가?
+- 확신도가 낮은 예측을 포기하면 정확도와 예측 범위가 어떻게 달라지는가?
+
+---
+
+## 3. 평가 방식
+
+### 시간 순 60 / 20 / 20 분할
 
 ```text
-Past                                             Future
-|---------------- Train ----------------|---- Val ----|---- Test ----|
-             60%                         20%           20%
+과거                                      미래
+|----------- 학습 60% -----------|-- 검증 20% --|-- 테스트 20% --|
 ```
 
-- Train: fit model and preprocessing
-- Validation: select model/feature set by Macro-F1
-- Test: evaluate once after selection
+- 학습: 모델과 전처리 기준 학습
+- 검증: 모델과 변수 구성 선택
+- 테스트: 선택이 끝난 뒤 최종 평가에 한 번 사용
 
-The test partition is not reused to choose hyperparameters.
+테스트 결과를 보고 다시 모델을 고르지 않습니다.
 
-### 4.2 Walk-forward validation
+### 시간 이동 검증
 
-A single holdout can depend heavily on one market regime. The selected candidate is therefore also evaluated with `TimeSeriesSplit`.
+한 번의 테스트 구간이 특정 시장 상황에 우연히 잘 맞았을 수 있기 때문에 `TimeSeriesSplit`으로 여러 시간 구간을 반복 평가합니다.
 
-The mean score describes expected quality across folds, while the standard deviation is treated as a **stability metric**.
+평균 점수와 함께 표준편차를 기록해 **시간에 따른 성능 변동**도 확인합니다.
 
-### 4.3 Metrics
+---
 
-| Metric | Why it is used |
+## 4. 평가 지표
+
+| 지표 | 확인 목적 |
 |---|---|
-| Accuracy | overall hit ratio |
-| Balanced Accuracy | class-wise recall averaged equally |
-| Macro-F1 | gives each class equal importance |
-| Weighted F1 | reflects support-weighted quality |
-| Per-class recall | reveals which market direction is ignored |
-| Confusion Matrix | shows the structure of errors |
-| Walk-forward mean/std | measures temporal stability |
-| Coverage | fraction of days on which the model chooses to act |
+| 정확도 | 전체 표본 중 맞힌 비율 |
+| 균형 정확도 | 각 클래스 재현율을 같은 비중으로 평가 |
+| Macro F1 | 각 클래스 F1을 같은 비중으로 평가 |
+| Weighted F1 | 클래스 표본 수를 반영한 F1 |
+| 클래스별 재현율 | 특정 방향을 거의 무시하는지 확인 |
+| 혼동행렬 | 어떤 방향을 어떤 방향으로 잘못 예측하는지 확인 |
+| 시간 이동 평균/표준편차 | 시간에 따른 안정성 확인 |
+| 예측 범위 | 확신도 기준을 통과해 실제 예측한 표본 비율 |
 
-A three-class market problem can be misleading when only Accuracy is reported, especially when the neutral class is dominant. Macro-F1 and Balanced Accuracy are therefore the main model-selection metrics.
+3분류 문제에서는 클래스 비율이 다를 수 있으므로 정확도만 보고 모델을 선택하지 않습니다. 주요 선택 지표는 Macro F1과 균형 정확도입니다.
 
 ---
 
-## 5. Baselines before complexity
+## 5. 복잡한 모델 전에 기준 모델부터 비교
 
-Research V2 intentionally adds simple models before another neural network.
+V2에서는 새로운 신경망을 추가하기 전에 단순한 모델부터 비교합니다.
 
 ```text
-Dummy Majority
-    ↓
-Balanced Logistic Regression
-    ↓
-Balanced Random Forest
-    ↓
-Histogram Gradient Boosting
+다수 클래스 기준 모델
+  ↓
+Logistic Regression
+  ↓
+Random Forest
+  ↓
+Extra Trees / HistGradientBoosting
 ```
 
-This answers an important engineering question:
+질문은 다음과 같습니다.
 
-> Does a more complex model actually add predictive value over a cheap baseline?
+> 복잡한 모델이 같은 평가 조건의 단순 기준보다 실제로 추가 가치를 주는가?
 
-If a neural model cannot beat a simple leakage-safe baseline under the same protocol, model complexity is not justified by the evidence.
+모델이 복잡하다는 사실 자체를 성능 근거로 사용하지 않습니다.
 
 ---
 
-## 6. Feature engineering hypothesis
+## 6. 변수 구성
 
-The legacy experiment uses many level-dependent indicators directly. Bitcoin price levels change substantially across market regimes, so Research V2 additionally creates relative features.
+기존 연구에는 가격 수준에 직접 영향을 받는 기술지표가 많았습니다. Bitcoin의 가격 수준은 시기마다 크게 달라지므로 V2에서는 상대값 중심 변수를 추가했습니다.
 
-Examples:
+예:
 
 ```text
-close / SMA - 1
-close / EMA - 1
-MACD / close
-ATR / close
-Bollinger-band position
-Bollinger-band width
-1 / 2 / 3 / 5 / 10-day historical returns
-intraday body ratio
-high-low range ratio
-log-volume change
+현재 가격 / 이동평균 - 1
+MACD / 현재 가격
+ATR / 현재 가격
+볼린저 밴드 내 위치
+볼린저 밴드 폭
+1 / 2 / 3 / 5 / 10일 과거 수익률
+장중 몸통 비율
+고가-저가 범위 비율
+로그 거래량 변화
 ```
 
-The hypothesis is that relative features are more portable across regimes than absolute indicator levels.
-
-The existing `return` column is **not** used as a feature because the original labeling notebook defines it with `shift(-1)`, meaning it represents the next day's target return.
+기존 `return` 열은 `shift(-1)`을 이용해 다음 날 수익률로 만들어졌기 때문에 입력 변수로 사용하지 않습니다. 목표값이 입력에 들어가는 직접적인 데이터 누수를 막기 위한 결정입니다.
 
 ---
 
-## 7. Selective prediction
+## 7. 확신도가 낮은 경우 예측하지 않는 실험
 
-A practical prediction system does not always need to emit a trading signal every day.
-
-Research V2 therefore adds a confidence threshold experiment.
+모든 날짜에 강제로 예측을 내는 대신 모델이 충분히 확신할 때만 결과를 사용하는 실험을 추가했습니다.
 
 ```text
-all predictions
-      ↓
-model probability
-      ↓
-confidence >= threshold ?
-     /                  \
-   yes                  no
-    ↓                    ↓
-use prediction          abstain
+전체 예측
+  ↓
+모델 확률
+  ↓
+확신도 >= 기준값 ?
+  ├─ 예 → 예측 사용
+  └─ 아니오 → 예측하지 않음
 ```
 
-The result is reported as a quality/coverage curve rather than hiding rejected observations.
+이때 정확도만 높아졌다고 말하지 않고 **예측 범위도 반드시 함께 기록**합니다.
 
-For example, an increase in Accuracy is meaningful only together with the corresponding decrease in Coverage.
+```text
+정확도 상승
+예측 범위 감소
+```
 
-This prevents a misleading claim such as "accuracy improved" when the model simply predicts on a much smaller subset.
+가 동시에 일어날 수 있기 때문입니다.
 
 ---
 
-## 8. Reproduction
+## 8. 재현 방법
 
 ```bash
 python -m venv .venv
@@ -189,7 +163,7 @@ pip install -r requirements-research-v2.txt
 python research_v2/run_research.py
 ```
 
-Generated outputs:
+결과 파일:
 
 ```text
 research_v2/results/
@@ -204,19 +178,17 @@ research_v2/results/
 └── selective_prediction.png
 ```
 
-GitHub Actions runs the same script and uploads the result directory as an artifact.
+GitHub Actions도 같은 실행 경로를 사용합니다.
 
 ---
 
-## 9. Claim policy
+## 9. 결과 작성 원칙
 
-The following rules are intentionally strict.
+- 기존 학사 연구 수치를 더 좋아 보이게 수정하지 않음
+- V2 수치는 실제 실행 코드가 생성한 값만 사용
+- 평가 조건이 다른 기존 연구와 V2를 직접적인 전후 개선율로 비교하지 않음
+- 성능 향상은 같은 시간 순 평가 조건의 기준 모델과 비교
+- 확신도 기준을 사용한 결과는 정확도와 예측 범위를 함께 제시
+- 한 번의 테스트 결과뿐 아니라 시간 이동 검증의 변동도 함께 확인
 
-- Existing thesis numbers are never edited to look stronger.
-- Research V2 numbers are generated only by `run_research.py`.
-- The legacy and V2 metrics are not treated as directly comparable when their evaluation protocols differ.
-- "Improvement" is reported against a baseline measured under the **same chronological protocol**.
-- Confidence filtering must always report both quality and coverage.
-- A single strong holdout result is not enough; walk-forward variance is also reported.
-
-This policy makes the repository easier to defend in a technical interview because every number has a reproducible origin.
+면접에서는 **“좋은 모델보다 먼저 좋은 평가 방식을 만들었다”**는 흐름으로 설명합니다.
