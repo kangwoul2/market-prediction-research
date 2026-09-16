@@ -1,33 +1,43 @@
-# Research Evaluation Decisions
+# 연구 평가 결정 기록
 
-## RD-001. Temporal split before model tuning
+## 1. 모델 조정보다 시간 순 분할을 먼저 수정
 
-금융 시계열의 production inference는 과거로 미래를 예측합니다. random split은 이 시간축을 깨므로 Research V2는 chronological train/validation/test split을 사용합니다.
+금융 시계열의 실제 예측은 과거 데이터로 미래를 예측합니다. 시간을 섞어 데이터를 나누면 이 구조가 깨지므로 Research V2는 학습·검증·테스트를 시간 순서대로 나눕니다.
 
-## RD-002. Preprocessing fit은 train only
+## 2. 전처리 기준은 학습 데이터에서만 계산
 
-Scaler와 feature transform parameter는 train subset에서만 학습하고 validation/test에는 transform만 적용합니다. 미래 분포가 preprocessing parameter에 들어가는 leakage를 막기 위함입니다.
+표준화와 변수 변환에 필요한 기준은 학습 데이터에서만 계산합니다. 검증·테스트 데이터에는 이미 계산한 기준만 적용합니다. 미래 구간의 분포 정보가 학습 전처리에 들어가는 데이터 누수를 막기 위한 결정입니다.
 
-## RD-003. Dummy baseline을 모든 task에 포함
+## 3. 모든 문제에 단순 기준 모델 포함
 
-Accuracy 숫자만으로 signal을 판단하지 않습니다. majority dummy와 Accuracy, Balanced Accuracy, Macro F1을 함께 비교합니다.
+정확도 숫자만으로 예측 신호가 있다고 판단하지 않습니다. 가장 많이 등장한 클래스를 계속 예측하는 기준 모델과 정확도, 균형 정확도, Macro F1을 함께 비교합니다.
 
-## RD-004. Original study 결과는 삭제하지 않음
+## 4. 기존 연구 결과를 삭제하지 않음
 
-원래 LSTM/GRU/Transformer 결과는 역사적 연구 결과로 보존합니다. Research V2와 평가 protocol이 다르므로 동일 조건의 before/after처럼 비교하지 않습니다.
+기존 LSTM, GRU, Transformer 결과는 학사 연구 당시의 결과로 그대로 보존합니다. V2와 평가 방식이 다르므로 같은 조건의 전후 비교처럼 사용하지 않습니다.
 
-## RD-005. Cross-market feature는 ablation으로 검증
+## 5. 외부 시장 변수는 같은 문제에서 직접 비교
 
-ETF/Gold feature를 사용한 이유를 설명만 하지 않고 BTC-only와 동일 task에서 직접 비교합니다. 3-class에서는 개선되지 않았고 actionable direction에서는 개선되었습니다. 실패한 가설도 결과로 유지합니다.
+ETF와 금 데이터를 넣었다는 사실만으로 도움이 된다고 주장하지 않습니다. BTC 단독 변수와 외부 시장 변수를 추가한 구성을 같은 평가 조건에서 비교합니다.
 
-## RD-006. Selective prediction은 coverage를 함께 보고
+결과:
+- 전체 날짜 3분류에서는 BTC 단독이 더 좋았음
+- ±1% 이상 움직인 날의 상승·하락 방향에서는 외부 시장 변수가 도움이 됐음
 
-confidence threshold를 높이면 accuracy가 오를 수 있지만 예측 표본 수가 줄어듭니다. 따라서 selective result는 Accuracy 단독이 아니라 Coverage, Balanced Accuracy, Macro F1과 함께 기록합니다.
+실패한 가설도 삭제하지 않습니다.
 
-## RD-007. Trading profitability를 주장하지 않음
+## 6. 확신도가 높은 구간만 예측할 때는 예측 범위를 함께 기록
 
-분류 accuracy는 실제 전략 수익률과 동일하지 않습니다. transaction cost, slippage, position sizing, risk control을 포함한 backtest가 없으므로 투자 성과를 주장하지 않습니다.
+확신도 기준을 높이면 정확도가 오를 수 있지만 실제 예측하는 표본 수는 줄어듭니다. 따라서 정확도만 기록하지 않고 예측 범위, 균형 정확도, Macro F1을 함께 기록합니다.
 
-## RD-008. Reproducibility를 CI에서 검증
+## 7. 투자 수익률을 주장하지 않음
 
-GitHub Actions가 strict temporal benchmark와 extended cross-market benchmark를 직접 실행하고 artifact를 생성합니다. README의 핵심 V2 수치는 successful workflow run의 출력에서 고정 기록합니다.
+분류 정확도는 실제 투자 수익률과 같지 않습니다. 거래비용, 슬리피지, 포지션 크기, 위험 관리가 포함된 매매 전략 백테스트가 없으므로 투자 성과를 주장하지 않습니다.
+
+## 8. GitHub Actions에서 같은 실험을 다시 실행
+
+GitHub Actions가 시간 순 평가와 외부 시장 변수 비교 실험을 직접 실행하고 결과 파일을 생성합니다. README의 핵심 V2 수치는 성공한 실행 결과에서 가져옵니다.
+
+## 9. 면접에서 사용하는 한 문장
+
+> 모델을 더 복잡하게 만드는 것보다 먼저 미래 정보가 학습 과정에 들어가지 않는지 확인하고, 같은 조건의 단순 기준 모델보다 실제로 나은지를 검증했습니다.
