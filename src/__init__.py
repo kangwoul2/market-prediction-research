@@ -1,0 +1,1 @@
+"""Market prediction research package."""
