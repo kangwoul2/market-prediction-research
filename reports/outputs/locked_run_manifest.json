@@ -1,0 +1,12 @@
+{
+  "scope": "locked_development_execution",
+  "generated_at": "2026-09-17T15:26:16",
+  "python_version": "3.11.9",
+  "platform": "Windows 64-bit",
+  "packages": {"pandas":"3.0.5","numpy":"2.4.6","scikit-learn":"1.9.1","lightgbm":"4.7.0","catboost":"1.2.10","xgboost":"3.2.0","yfinance":"1.7.0","requests":"2.34.2","nltk":"3.10.3","ta":"0.11.0","joblib":"1.6.0","pyarrow":"25.0.1"},
+  "data_hashes": {"market_daily.csv":"439f59e1ea301bdf4214575994ced0635ee4c9d0a3b82a16499ac5c1bd95b16b","onchain_blockchain_com.csv":"950744361f11a17865e214b2e0954bafcf7adbfd96aae8c74f93b3597fe5e9c7","model_dataset.csv":"eac3bf9ac154d07b8072a56b6cf9df1aca3cfc933d2d3d19e0a8ba8a8eef868e"},
+  "deep_config_sha256": "63f17008cc3b4852e9977a25c3b730e542cc538fb4714ec198032582130a0236",
+  "move_config_sha256": "5be7dd651722a0cd6037cc0fb0bb4a03d0176ea3f3ffca22e1220ec93b8d5bc9",
+  "reproducibility_id": "a2d0aa38c88ed237c753f43d5c578da2d9cf50f9315cd3f45fa53890d4a9ec6d",
+  "note": "공개 저장소 통합 과정에서 개인 로컬 경로와 작업 디렉터리 상태 문자열은 제거했습니다. 성능 결과를 만든 잠금 실행의 데이터와 설정 fingerprint는 보존했습니다."
+}

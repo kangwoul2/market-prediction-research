@@ -1,0 +1,18 @@
+{
+  "research_status": "development_cv_only",
+  "execution_mode": "persistent_cache_plus_coarse_to_fine_pruning",
+  "primary_task": "three_class_next_day_return",
+  "primary_definition": "t일 종료 시점까지 관측 가능한 정보로 t+1일 BTC 수익률을 DOWN, NEUTRAL, UP으로 분류",
+  "secondary_tasks": ["direction_binary", "move_binary", "return_regression"],
+  "selected_training_window_days": 1825,
+  "selected_volatility_window_days": 7,
+  "selected_dynamic_k": 0.9,
+  "selected_feature_set": "price_crypto",
+  "selected_classifier": "extra_trees",
+  "best_three_class_macro_f1": 0.4445034469203124,
+  "best_direction_binary_roc_auc": 0.5129805762971144,
+  "best_move_binary_macro_f1": 0.6517252499193809,
+  "best_move_binary_roc_auc": 0.7143333420740134,
+  "best_regression_pearson": -0.0024690097454859203,
+  "interpretation": "방향과 수익률 자체보다 의미 있는 큰 움직임 발생 여부에서 더 안정적인 신호가 관찰되어 후속 탐색을 move binary에 집중했다."
+}

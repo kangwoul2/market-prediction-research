@@ -1,0 +1,18 @@
+{
+  "research_status": "development_cv_only",
+  "task": "next_day_meaningful_move_binary",
+  "definition": "t일 종료 시점까지 관측 가능한 정보로 t+1일 BTC 절대수익률이 k×trailing volatility를 넘는지 예측",
+  "selected_training_window_days": 730,
+  "selected_volatility_window_days": 7,
+  "selected_dynamic_k": 1.1,
+  "selected_feature_set": "price_crypto",
+  "selected_classifier": "extra_trees",
+  "selected_top_k": 50,
+  "decision_threshold": 0.5,
+  "final_oof": {"accuracy":0.7157407407407408,"balanced_accuracy":0.66374405076679,"macro_f1":0.6588604605939383,"log_loss":0.5972482464077844,"roc_auc":0.7211972501322051,"brier":0.204149429415403,"fold_macro_f1_mean":0.6496532035496669,"fold_macro_f1_std":0.03868597227841375,"fold_macro_f1_worst":0.5917595917595918,"robust_score":0.6399817104800635,"oof_rows":1080},
+  "chronological_threshold_verification": {"decision_threshold":0.5,"selection_rows":648,"verification_rows":432,"accuracy":0.6921296296296297,"balanced_accuracy":0.6860655737704917,"macro_f1":0.6588103254769921,"roc_auc":0.7239291380222104,"pr_auc":0.4832706899851745,"brier":0.21216530081523408},
+  "development_data_reviewed_through": "2026-09-15",
+  "prospective_start_date": "2026-09-16",
+  "feature_count": 50,
+  "important_rule": "threshold는 OOF 앞쪽 구간에서 선택하고 뒤쪽 OOF 구간에 고정 검증한다. 최종 성능 주장은 prospective_start_date 이후 새 데이터로만 판단한다."
+}

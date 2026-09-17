@@ -1,0 +1,13 @@
+{
+  "status": "DEVELOPMENT_LOCKED",
+  "locked_on": "2026-09-17",
+  "purpose": "개발 데이터에서 선택한 설정을 고정하고 prospective_start_date 이후 데이터에 다시 맞추지 않기 위한 잠금 파일",
+  "development_data_reviewed_through": "2026-09-15",
+  "prospective_start_date": "2026-09-16",
+  "primary_research_conclusion": "다음날 BTC 방향이나 수익률 자체보다 다음날 의미 있는 큰 움직임 발생 여부에서 더 안정적인 예측 신호가 관찰됨",
+  "direction_reference": {"macro_f1":0.5020522491541406,"roc_auc":0.5129805762971144},
+  "three_class_reference": {"macro_f1":0.4445034469203124,"balanced_accuracy":0.4544805463284234},
+  "final_move_config": {"task":"next_day_meaningful_move_binary","definition":"abs(r_t_plus_1) > 1.1 * trailing_7d_volatility_t","training_window_days":730,"volatility_window_days":7,"k":1.1,"feature_set":"price_crypto","classifier":"extra_trees","top_k_features":50,"decision_threshold":0.5,"final_oof_macro_f1":0.6588604605939383,"final_oof_balanced_accuracy":0.66374405076679,"final_oof_roc_auc":0.7211972501322051,"chronological_verification_macro_f1":0.6588103254769921,"chronological_verification_balanced_accuracy":0.6860655737704917,"chronological_verification_roc_auc":0.7239291380222104,"chronological_verification_pr_auc":0.4832706899851745,"chronological_verification_brier":0.21216530081523408},
+  "reproducibility_id": "a2d0aa38c88ed237c753f43d5c578da2d9cf50f9315cd3f45fa53890d4a9ec6d",
+  "rules": ["prospective_start_date 이후 새 데이터를 보고 training window, label, k, feature set, top-k, model, threshold를 수정하지 않는다.","설정을 바꾸는 새로운 실험은 잠긴 prospective 평가와 분리해 별도 개발 작업으로 기록한다.","현재 수치는 development CV 및 chronological OOF verification 결과이며 실제 미래 일반화 성능으로 표현하지 않는다.","X sentiment는 최종 잠금 결과에 포함되지 않았다."]
+}

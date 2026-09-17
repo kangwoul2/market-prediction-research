@@ -1,0 +1,18 @@
+{
+  "research_status": "development_cv_only",
+  "execution_mode": "persistent_cache_plus_coarse_to_fine_pruning",
+  "primary_task": "three_class_next_day_return",
+  "primary_definition": "t일 종료 시점까지 관측 가능한 정보로 t+1일 BTC 수익률을 DOWN, NEUTRAL, UP으로 분류",
+  "secondary_tasks": ["direction_binary", "move_binary", "return_regression"],
+  "selected_training_window_days": 1825,
+  "selected_volatility_window_days": 7,
+  "selected_dynamic_k": 0.9,
+  "selected_feature_set": "price_crypto",
+  "selected_classifier": "extra_trees",
+  "promoted_models": ["extra_trees", "catboost", "lightgbm"],
+  "best_three_class": {"task":"three_class","model":"extra_trees","accuracy":0.5555555555555556,"balanced_accuracy":0.4544805463284234,"macro_f1":0.4445034469203124,"log_loss":1.0106338288210226,"fold_macro_f1_mean":0.43664940621251197,"fold_macro_f1_std":0.02621691621535273,"fold_macro_f1_worst":0.39523789360771194,"robust_score":0.4300951771586738,"oof_rows":1080},
+  "best_direction_binary": {"task":"direction_binary","model":"extra_trees","accuracy":0.5074074074074074,"balanced_accuracy":0.5088372188742278,"macro_f1":0.5020522491541406,"log_loss":0.6955258453001231,"fold_macro_f1_mean":0.5003231020530295,"fold_macro_f1_std":0.021787452573154936,"fold_macro_f1_worst":0.4725028058361392,"robust_score":0.4948762389097408,"oof_rows":1080,"roc_auc":0.5129805762971144,"brier":0.25115517807984405},
+  "best_move_binary": {"task":"move_binary","model":"extra_trees","accuracy":0.662962962962963,"balanced_accuracy":0.6671299227198999,"macro_f1":0.6517252499193809,"log_loss":0.6428375376175024,"fold_macro_f1_mean":0.6497161339406742,"fold_macro_f1_std":0.03549765633300002,"fold_macro_f1_worst":0.5773081201334817,"robust_score":0.6408417198574242,"oof_rows":1080,"roc_auc":0.7143333420740134,"brier":0.22540460920274402},
+  "best_regression": {"model":"catboost_reg","mae":0.018064314645016066,"rmse":0.025333890781731584,"pearson":-0.0024690097454859203,"spearman":0.004084003653790665,"sign_accuracy":0.512962962962963,"derived_class_macro_f1":0.27323974662035755,"derived_class_balanced_accuracy":0.33620758022537367,"fold_pearson_mean":-0.007241136289138891,"fold_pearson_std":0.056100194068296805,"fold_derived_macro_f1_mean":0.2721402809148597,"fold_derived_macro_f1_std":0.01557660351261509,"oof_rows":1080},
+  "important_rule": "빠른 탐색으로 후보를 줄인 뒤 상위 후보만 더 엄격한 CV로 재검증하며 동일 조합은 persistent cache에서 재사용한다."
+}

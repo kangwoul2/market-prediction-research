@@ -1,0 +1,15 @@
+{
+  "rows": 4278,
+  "columns": 311,
+  "date_start": "2015-01-01",
+  "date_end": "2026-09-17",
+  "dynamic_k": 0.7,
+  "return_windows": [1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90, 180],
+  "rolling_windows": [3, 7, 14, 21, 30, 60, 90, 180],
+  "crypto_assets_used": ["eth", "bnb", "xrp", "sol", "ada", "doge", "ltc"],
+  "external_raw_columns_seen": ["hash_rate", "difficulty", "transactions", "unique_addresses", "miners_revenue_usd", "transaction_fees_usd", "mempool_size", "avg_block_size", "transactions_per_block", "estimated_tx_value_usd", "mempool_tx_count", "transaction_rate_per_second", "median_confirmation_time", "avg_confirmation_time", "utxo_count", "fear_greed", "value_classification"],
+  "macro_assets_used": ["spy", "qqq", "gold", "dxy", "vix", "tlt"],
+  "macro_alignment": "휴장일은 직전 관측 종가만 forward-fill하고 계산 결과를 다시 1일 lag 처리",
+  "forecast_definition": "date 시점까지 관측 가능한 정보로 target_end_date의 BTC 수익률과 분류 라벨을 예측",
+  "temporal_rule": "거시시장과 외생 일 단위 데이터는 보수적으로 지연하고 target_end_date는 누수 검사 전용"
+}

@@ -1,0 +1,13 @@
+{
+  "task": "next_day_meaningful_move_binary",
+  "training_window_days": 730,
+  "volatility_window_days": 7,
+  "k": 1.1,
+  "feature_set": "price_crypto",
+  "classifier": "extra_trees",
+  "top_k_features": 50,
+  "decision_threshold": 0.5,
+  "development_data_reviewed_through": "2026-09-15",
+  "prospective_start_date": "2026-09-16",
+  "rule": "prospective 결과를 보고 이 설정을 다시 조정하지 않는다."
+}

@@ -1,0 +1,11 @@
+{
+  "decision_threshold": 0.5,
+  "selection_rows": 648,
+  "verification_rows": 432,
+  "accuracy": 0.6921296296296297,
+  "balanced_accuracy": 0.6860655737704917,
+  "macro_f1": 0.6588103254769921,
+  "roc_auc": 0.7239291380222104,
+  "pr_auc": 0.4832706899851745,
+  "brier": 0.21216530081523408
+}
