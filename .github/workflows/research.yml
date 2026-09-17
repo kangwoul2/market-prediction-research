@@ -1,0 +1,26 @@
+name: research-checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'run_pipeline.py'
+      - 'requirements.txt'
+      - '.github/workflows/research.yml'
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile current research code
+        run: python -m compileall -q src run_pipeline.py

@@ -1,7 +1,0 @@
-feature_set,task,selected_model,n,feature_count,test_accuracy,test_balanced_accuracy,test_macro_f1,dummy_accuracy,dummy_balanced_accuracy,dummy_macro_f1,gain_accuracy,gain_balanced_accuracy,gain_macro_f1,test_roc_auc
-btc_only,three_class,extra_trees,1774,28,0.400000,0.387503,0.384366,0.292958,0.333333,0.151053,0.107042,0.054169,0.233313,
-btc_only,actionable_direction,random_forest,1141,28,0.519651,0.518908,0.518908,0.480349,0.500000,0.324484,0.039301,0.018908,0.194424,0.519710
-btc_only,actionable_move,extra_trees,1774,28,0.532394,0.537520,0.528318,0.608451,0.500000,0.378284,-0.076056,0.037520,0.150035,0.580569
-btc_plus_cross_market,three_class,hist_gradient_boosting,1774,58,0.385915,0.378511,0.377227,0.292958,0.333333,0.151053,0.092958,0.045178,0.226174,
-btc_plus_cross_market,actionable_direction,random_forest,1141,58,0.545852,0.548243,0.545149,0.480349,0.500000,0.324484,0.065502,0.048243,0.220665,0.536440
-btc_plus_cross_market,actionable_move,logistic,1774,58,0.535211,0.569328,0.534680,0.608451,0.500000,0.378284,-0.073239,0.069328,0.156396,0.571809
