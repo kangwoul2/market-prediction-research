@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 echo ================================================
 echo Market Prediction Research - Locked Development
- echo ================================================
+echo ================================================
 
 if exist "reports\outputs\final_development_lock.json" (
     if /I not "%ALLOW_RESEARCH_REBUILD%"=="1" (
@@ -66,7 +66,7 @@ if errorlevel 1 goto :error
 echo.
 echo ================================================
 echo DONE
- echo ================================================
+echo ================================================
 pause
 exit /b 0
 
